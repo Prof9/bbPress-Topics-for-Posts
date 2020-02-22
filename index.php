@@ -36,13 +36,11 @@ class BBP_PostTopics {
 			add_meta_box(
 				'bbpress-post-topic',
 				__('bbPress Topic for this Post', 'bbpress-post-topics'),
-				array( &$this, 'display_meta_box' ),
+				array( &$this, 'display_topic_option' ),
 				$post_type
 			);
 		}
 	}
-	
-	function display_meta_box( $post ) {}
 	
 	/**
 	 * Add the bbPress topic option to the Discussion meta box
@@ -880,8 +878,7 @@ class BBP_PostTopics {
 
 $bbp_post_topics = new BBP_PostTopics;
 
-//add_action( 'add_meta_boxes',		array( &$bbp_post_topics, 'add_meta_box' ) );
-add_action( 'post_comment_status_meta_box-options', array( &$bbp_post_topics, 'display_topic_option' ) );
+add_action( 'add_meta_boxes',		array( &$bbp_post_topics, 'add_meta_box' ) );
 add_action( 'save_post', 			array( &$bbp_post_topics, 'process_topic_option' ), 10, 2 );
 add_action( 'admin_init', 			array( &$bbp_post_topics, 'add_discussion_page_settings' ) );
 add_action( 'xmlrpc_call', 			array( &$bbp_post_topics, 'catch_xmlrpc_post' ) );
