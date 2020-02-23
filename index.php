@@ -61,6 +61,7 @@ class BBP_PostTopics {
 		$bbpress_topic_status	= $bbpress_topic_options['enabled'] != false;
 		$bbpress_topic_display	= $bbpress_topic_options['display'];
 		$bbpress_topic_slug		= $bbpress_topic_options['topic_id'];
+		$bbpress_topic_author	= $bbpress_topic_options['author'];
 		
 		if($bbpress_topic_slug) {
 			$bbpress_topic = bbp_get_topic( $bbpress_topic_slug);
@@ -76,6 +77,12 @@ class BBP_PostTopics {
 			?><br /><p><?php _e('bbPress Topics for Posts has been enabled, but you have not created any forums yet.','bbpress-post-topics'); ?></p><?php
 			return; 
 		} 
+		
+		$users = get_users(array(
+			'role_in' => array(
+				'administrator', 'editor', 'author', 'contributor'
+			)
+		));
 		?>
 		<br />
 		<input type="hidden" name="bbpress_topic[form_displayed]" value="true" />
@@ -93,6 +100,14 @@ class BBP_PostTopics {
 				);
 				bbp_dropdown( $forum_dropdown_options );
 				?>
+			</select><br />
+			
+			<label for="bbpress_topic_author"><?php _e('Post as user:', 'bbpress-post-topics' ) ?> </label>
+			<select name="bbpress_topic[author]" id="bbpress_topic_author">
+				<option value=""<?= !isset($bbpress_topic_author) ?>><?php _e('Post author', 'bbpress_post_topics' ) ?> (<?= get_userdata($post->post_author)->user_login ?>)</option>
+				<?php foreach ($users as $user) : ?>
+				<option value="<?= $user->ID ?>"<?= $user->ID == $bbpress_topic_author ? ' selected' : '' ?>><?= $user->user_login ?></option>
+				<?php endforeach; ?>
 			</select><br />
 			
 			&mdash; <input type="checkbox" name="bbpress_topic[copy_tags]" id="bbpress_topic_copy_tags" <?php checked( $bbpress_topic_options['copy_tags'], 'on' ) ?> /> <label for="bbpress_topic_copy_tags"><?php _e( 'Copy post tags to new topic', 'bbpress-post-topics' ) ?></label>
@@ -296,6 +311,7 @@ class BBP_PostTopics {
 
 			$topic_slug		= isset( $bbppt_options['slug'] ) ? $bbppt_options['slug'] : '' ;
 			$topic_forum	= isset( $bbppt_options['forum_id'] ) ? (int)$bbppt_options['forum_id'] : 0 ;
+			$topic_author	= isset( $bbppt_options['author'] ) ? (int)$bbppt_options['author'] : $post->post_author;
 			
 			if( ! $use_defaults ) {
 				
@@ -352,7 +368,7 @@ class BBP_PostTopics {
 			} else if($topic_forum != 0) {
 				/** if user has opted to create a new topic */
 
-				$topic_ID = $this->build_new_topic( $post, $topic_forum );
+				$topic_ID = $this->build_new_topic( $post, $topic_forum, $topic_author );
 				
 				if( ! $topic_ID ) {
 					// return an error of some kind
@@ -405,11 +421,12 @@ class BBP_PostTopics {
 	 * Create the new topic when selected, including shortcode substitution
 	 * @param WP_Post $post post object to associate with new topic
 	 * @param int $topic_forum ID of forum to hold new topic
+	 * @param int $topic_author ID of user to set as topic author
 	 */
-	function build_new_topic( $post, $topic_forum ) {
+	function build_new_topic( $post, $topic_forum, $topic_author ) {
 
 		$strings = get_option( 'bbpress_discussion_text' );
-		$author_info = get_userdata( $post->post_author );
+		$author_info = get_userdata( $topic_author );
 		
 		if( isset( $strings['topic-text'] ) ) {
 			
@@ -435,7 +452,7 @@ class BBP_PostTopics {
 		
 		$new_topic_data = array(
 			'post_parent'   => (int)$topic_forum,
-			'post_author'   => $post->post_author,
+			'post_author'   => $topic_author,
 			'post_content'  => $topic_content,
 			'post_title'    => $post->post_title,
 			'post_date'		=> $post->post_date,
@@ -574,6 +591,7 @@ class BBP_PostTopics {
 		$ex_options = array(
 			'enabled'        => false,
 			'forum_id'       => false,
+			'author'         => NULL,
 			'copy_tags'      => false,
 			'copy_comments'  => false,
 			'display'        => false,
@@ -591,6 +609,12 @@ class BBP_PostTopics {
 		$forum_select_string .= '<option value="0">' . __('Select a Forum','bbpress-post-topics') . '</option>';
 		$forum_select_string .= bbp_get_dropdown( $forum_dropdown_options ); 
 		$forum_select_string .= '</select>';
+		
+		$users = get_users(array(
+			'role_in' => array(
+				'administrator', 'editor', 'author', 'contributor'
+			)
+		));
 		?>
 		<input type="checkbox" name="bbpress_discussion_defaults[enabled]" id="bbpress_discussion_defaults_enabled" <?php checked($ex_options['enabled'],'on') ?>>
 		<label for="bbpress_discussion_defaults_enabled"><?php printf(__('Create a new bbPress topic in %s %s for new posts','bbpress-post-topics'), '</label>', $forum_select_string); ?> 
@@ -599,6 +623,14 @@ class BBP_PostTopics {
 		&mdash; <a class="button" id="create_topics" href="#" title="<?php _e('Create topics and apply these settings to all existing posts','bbpress-post-topics') ?>"><?php _e('Apply settings to existing posts', 'bbpress-post-topics'); ?></a>
 		<?php endif; ?>
 		<br />
+
+		<label for="bbpress_topic_author"><?php _e('Post as user:', 'bbpress-post-topics' ) ?> </label>
+			<select name="bbpress_discussion_defaults[author]" id="bbpress_discussion_defaults_author">
+			<option value=""<?= !isset($ex_options['author']) ?>><?php _e('Post author', 'bbpress_post_topics' ) ?> (<?= wp_get_current_user()->user_login ?>)</option>
+			<?php foreach ($users as $user) : ?>
+			<option value="<?= $user->ID ?>"<?= $user->ID == $ex_options['author'] ? ' selected' : '' ?>><?= $user->user_login ?></option>
+			<?php endforeach; ?>
+		</select><br />
 
 		<input type="checkbox" name="bbpress_discussion_defaults[copy_tags]" id="bbpress_discussion_defaults_copy_tags" <?php checked($ex_options['copy_tags'],'on') ?>>
 		<label for="bbpress_discussion_defaults_copy_tags"><?php _e('Copy post tags to new topics','bbpress-post-topics'); ?></label><br />
@@ -767,6 +799,7 @@ class BBP_PostTopics {
 				'topic_id'			=> get_post_meta( $ID, 'bbpress_discussion_topic_id', true ),
 				'slug'				=> get_post_meta( $ID, 'bbpress_discussion_topic_id', true ),
 				'forum_id'			=> empty( $defaults['forum_id'] ) ? false: $defaults['forum_id'],
+				'author'			=> isset( $defaults['author'] ) ? $defaults['author'] : NULL,
 				'copy_tags'			=> empty( $defaults['copy_tags'] ) ? false : $defaults['copy_tags'],
 				'copy_comments'		=> empty( $defaults['copy_comments'] ) ? false : $defaults['copy_comments'],
 				'display'			=> empty( $defaults['display'] ) ? false : $defaults['display'],
