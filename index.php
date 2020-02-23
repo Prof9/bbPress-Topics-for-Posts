@@ -424,7 +424,7 @@ class BBP_PostTopics {
 		$shortcodes = array(
 			'%title'	=> $post->post_title,
 			'%url'		=> get_permalink( $post->ID ),
-			'%author'	=> $author_info->user_nicename,
+			'%author'	=> $author_info->display_name,
 			'%excerpt'	=> ( empty( $post->post_excerpt ) ? bbppt_post_discussion_get_the_content($post->post_content, 150) : apply_filters('the_excerpt', $post->post_excerpt) ),
 			'%post'		=> $post->post_content
 		);
