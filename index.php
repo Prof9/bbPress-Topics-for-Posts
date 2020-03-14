@@ -32,7 +32,7 @@ class BBP_PostTopics {
 	 */
 	function add_meta_box() {
 
-		foreach( apply_filters( 'bbppt_eligible_post_types', array( 'post', 'page' )) as $post_type ) {
+		foreach( apply_filters( 'bbppt_eligible_post_types', $this->get_applicable_post_types() ) as $post_type ) {
 			add_meta_box(
 				'bbpress-post-topic',
 				__('bbPress Topic for this Post', 'bbpress-post-topics'),
@@ -219,7 +219,7 @@ class BBP_PostTopics {
 			return;
 
 		/** Only process for post types we specify */
-		if( !in_array( $post->post_type, apply_filters( 'bbppt_eligible_post_types', array( 'post', 'page' ) ) ) ) {
+		if( !in_array( $post->post_type, apply_filters( 'bbppt_eligible_post_types', $this->get_applicable_post_types() ) ) ) {
 			return;
 		}
 		
@@ -535,7 +535,7 @@ class BBP_PostTopics {
 			
 			$affected_posts = get_posts(
 				array(
-					'post_type'		=> apply_filters( 'bbppt_eligible_post_types', array( 'post', 'page' ) ),
+					'post_type'		=> apply_filters( 'bbppt_eligible_post_types', $this->get_applicable_post_types() ),
 					'meta_key'		=> 'bbpress_discussion_topic_id',
 					'meta_value'	=> $topic_ID
 				)
@@ -590,6 +590,8 @@ class BBP_PostTopics {
 
 		$ex_options = array(
 			'enabled'        => false,
+			'enabled_posts'  => false,
+			'enabled_pages'  => false,
 			'forum_id'       => false,
 			'author'         => NULL,
 			'copy_tags'      => false,
@@ -675,7 +677,17 @@ class BBP_PostTopics {
 		
 		do_action( 'bbppt_display_options_fields', 0 );
 		
-		?></div><?php
+		?>
+		<label for=""><?php _e( 'Enable for post types:', 'bbpress-post-topics' ); ?></label><br />
+		
+		<input type="checkbox" name="bbpress_discussion_defaults[enabled_posts]" id="bbpress_discussion_defaults_enabled_posts" <?php checked($ex_options['enabled_posts'],'on') ?>>
+		<label for="bbpress_discussion_defaults_enabled_posts"><?php _e('Posts','bbpress-post-topics'); ?> 
+		<br />
+
+		<input type="checkbox" name="bbpress_discussion_defaults[enabled_pages]" id="bbpress_discussion_defaults_enabled_pages" <?php checked($ex_options['enabled_pages'],'on') ?>>
+		<label for="bbpress_discussion_defaults_enabled_pages"><?php _e('Pages','bbpress-post-topics'); ?> 
+		
+		</div><?php
 		
 	}
 	
@@ -748,6 +760,24 @@ class BBP_PostTopics {
 	}
 	
 	/**
+	 * Get the post types for which topics should be created
+	 */
+	function get_applicable_post_types() {
+
+		$bbppt_options = get_option( 'bbpress_discussion_defaults' );
+		$post_types = array();
+
+		if ( isset( $bbppt_options['enabled_posts'] ) && $bbppt_options['enabled_posts'] == 'on' ) {
+			$post_types[] = 'post';
+		}
+		if ( isset( $bbppt_options['enabled_pages'] ) && $bbppt_options['enabled_pages'] == 'on' ) {
+			$post_types[] = 'page';
+		}
+
+		return $post_types;
+	}
+	
+	/**
 	 * Retrieve topic options for posts, including cases where defaults are used
 	 * @param int $ID ID of post
 	 * @param string $option_name Optional name of an option to filter by
@@ -795,6 +825,8 @@ class BBP_PostTopics {
 			
 			$options = array(
 				'enabled'			=> get_post_meta( $ID, 'use_bbpress_discussion_topic', true ) || ! empty( $defaults['enabled'] ),
+				'enabled_posts'		=> empty( $defaults['enabled_posts'] ) ? false : $defaults['enabled_posts'],
+				'enabled_pages'		=> empty( $defaults['enabled_pages'] ) ? false : $defaults['enabled_pages'],
 				'use_defaults'		=> true,
 				'topic_id'			=> get_post_meta( $ID, 'bbpress_discussion_topic_id', true ),
 				'slug'				=> get_post_meta( $ID, 'bbpress_discussion_topic_id', true ),
