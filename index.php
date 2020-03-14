@@ -79,7 +79,7 @@ class BBP_PostTopics {
 		} 
 		
 		$users = get_users(array(
-			'role_in' => array(
+			'role__in' => array(
 				'administrator', 'editor', 'author', 'contributor'
 			)
 		));
@@ -620,7 +620,7 @@ class BBP_PostTopics {
 		$forum_select_string .= '</select>';
 		
 		$users = get_users(array(
-			'role_in' => array(
+			'role__in' => array(
 				'administrator', 'editor', 'author', 'contributor'
 			)
 		));
