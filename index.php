@@ -626,7 +626,7 @@ class BBP_PostTopics {
 
 		<label for="bbpress_topic_author"><?php _e('Post as user:', 'bbpress-post-topics' ) ?> </label>
 			<select name="bbpress_discussion_defaults[author]" id="bbpress_discussion_defaults_author">
-			<option value=""<?= !isset($ex_options['author']) ?>><?php _e('Post author', 'bbpress_post_topics' ) ?> (<?= wp_get_current_user()->user_login ?>)</option>
+			<option value=""<?= !isset($ex_options['author']) ?>><?php _e('Post author', 'bbpress-post-topics' ) ?> (<?= wp_get_current_user()->user_login ?>)</option>
 			<?php foreach ($users as $user) : ?>
 			<option value="<?= $user->ID ?>"<?= $user->ID == $ex_options['author'] ? ' selected' : '' ?>><?= $user->user_login ?></option>
 			<?php endforeach; ?>
