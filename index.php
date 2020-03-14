@@ -225,7 +225,19 @@ class BBP_PostTopics {
 		
 		// TODO: combine existing topic and draft settings branches
 		
-		if( isset( $_POST['bbpress_topic'] ) ) {
+		if( get_post_meta( $post_ID, 'bbpress_discussion_topic_id', true ) ) {
+			/**
+			 * If post has an existing topic, use its settings
+			 */
+			
+			$bbppt_options = $this->get_topic_options_for_post( $post_ID );
+			$create_topic = ( ! empty( $bbppt_options['enabled'] ) );
+			$use_defaults = ( ! empty( $bbppt_options['use_defaults'] ) );
+			
+			bbppt_debug( 'Processing topic for existing post ' . $post_ID . ' with the following settings: ' . print_r( $bbppt_options, true ) );
+			bbppt_debug( 'Creating topic?: ' . $create_topic . '; using defaults?: ' . $use_defaults );
+			
+		} else if( isset( $_POST['bbpress_topic'] ) ) {
 			/**
 			 * Post was created through the full post editor form
  			 * Check the POST for settings
@@ -247,18 +259,6 @@ class BBP_PostTopics {
 				bbppt_debug( 'NOT creating a topic for regular post ' . $post_ID );
 				
 			}
-			
-		} else if( get_post_meta( $post_ID, 'bbpress_discussion_topic_id', true ) ) {
-			/**
-			 * If post has an existing topic, use its settings
-			 */
-			
-			$bbppt_options = $this->get_topic_options_for_post( $post_ID );
-			$create_topic = ( ! empty( $bbppt_options['enabled'] ) );
-			$use_defaults = ( ! empty( $bbppt_options['use_defaults'] ) );
-			
-			bbppt_debug( 'Processing topic for existing post ' . $post_ID . ' with the following settings: ' . print_r( $bbppt_options, true ) );
-			bbppt_debug( 'Creating topic?: ' . $create_topic . '; using defaults?: ' . $use_defaults );
 			
 		} else if( $this->has_draft_settings( $post ) ) {
 			/**
