@@ -354,6 +354,12 @@ class BBP_PostTopics {
 						update_post_meta( $post_ID, 'bbpress_discussion_comments_copied', time() );
 					}
 					
+					/** Update topic with new title */
+					if( ! empty( $bbppt_options['update_title'] ) ) {
+						$topic->post_title = $post->post_title;
+						wp_update_post($topic);
+					}
+					
 					if( $use_defaults ) {
 						update_post_meta( $post_ID, 'bbpress_discussion_use_defaults', true );
 					} else {
@@ -597,7 +603,8 @@ class BBP_PostTopics {
 			'copy_tags'      => false,
 			'copy_comments'  => false,
 			'display'        => false,
-			'display-extras' => false
+			'display-extras' => false,
+			'update_title'   => false
 		);
 		
 		$ex_options = wp_parse_args( get_option( 'bbpress_discussion_defaults' ), $ex_options );
@@ -639,6 +646,9 @@ class BBP_PostTopics {
 
 		<input type="checkbox" name="bbpress_discussion_defaults[copy_comments]" id="bbpress_discussion_defaults_copy_comments" <?php checked($ex_options['copy_comments'],'on') ?>>
 		<label for="bbpress_discussion_defaults_copy_comments"><?php _e('Copy post comments to new topics (when available)','bbpress-post-topics'); ?></label><br />
+
+		<input type="checkbox" name="bbpress_discussion_defaults[update_title]" id="bbpress_discussion_defaults_update_title" <?php checked($ex_options['update_title'],'on') ?>>
+		<label for="bbpress_discussion_defaults_update_title"><?php _e('Update topic title on edit','bbpress-post-topics'); ?></label><br />
 
 		<label for=""><?php _e( 'On the post page, show:', 'bbpress-post-topics' ); ?></label><br />
 		<?php
@@ -836,6 +846,7 @@ class BBP_PostTopics {
 				'copy_comments'		=> empty( $defaults['copy_comments'] ) ? false : $defaults['copy_comments'],
 				'display'			=> empty( $defaults['display'] ) ? false : $defaults['display'],
 				'display-extras'	=> $display_extras,
+				'update_title'		=> empty( $defaults['update_title'] ) ? false : $defaults['update_title'],
 				'text'				=> $strings
 			);
 			$options['forum_id'] = apply_filters( 'bbpt_override_default_topic_forum', $options['forum_id'], get_post_type( $ID ) );
